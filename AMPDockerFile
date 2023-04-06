@@ -33,7 +33,7 @@ RUN mkdir -p /usr/share/man/man1 &&\
  libncurses5:i386\
  libbz2-1.0:i386\
  libtinfo5:i386\
- libcurl3\
+ libcurl3-gnutls:i386\
  gnutls:i386\
  libsdl2-2.0-0:i386 &&\
  apt-get clean &&\
