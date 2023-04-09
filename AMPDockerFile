@@ -5,8 +5,7 @@ FROM amd64/ubuntu:22.04
 ENV AMP_CONTAINER=DOCKER
 ENV LD_LIBRARY_PATH=./:/opt/cubecoders/amp/:/AMP/
 
-RUN mkdir -p /usr/share/man/man1 &&\
- dpkg --add-architecture i386 &&\
+RUN dpkg --add-architecture i386 &&\
  apt-get update &&\
  DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends\
  locales\
