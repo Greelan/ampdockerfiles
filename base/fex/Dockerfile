@@ -44,21 +44,17 @@ RUN         set -eux; \
             apt-get install -o APT::Keep-Downloaded-Packages="false" -y software-properties-common; \
             add-apt-repository ppa:fex-emu/fex; \
             apt-get update; \
-            curl --silent https://raw.githubusercontent.com/FEX-Emu/FEX/main/Scripts/InstallFEX.py | python3; \
+            apt-get install -o APT::Keep-Downloaded-Packages="false" -y \
+                fex-emu-armv8.0 fex-emu-binfmt32 fex-emu-binfmt64; \
+            FEXRootFSFetcher; \
             \
             # Temp fix if libssl1.1 needed
-            case "${TARGETARCH}" in \
-                amd64) wget -qO libssl1.1.deb https://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.24_amd64.deb;; \
-                arm64) wget -qO libssl1.1.deb https://ports.ubuntu.com/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.24_arm64.deb;; \
-            esac; \
+            wget -qO libssl1.1.deb https://ports.ubuntu.com/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.24_arm64.deb; \
             apt-get install -y ./libssl1.1.deb; \
             rm libssl1.1.deb; \
             \
             # Install AMP instance manager
-            case "${TARGETARCH}" in \
-                amd64) wget -q https://cdn-repo.c7rs.com/ampinstmgr-latest.tgz;; \
-                arm64) wget -q https://cdn-repo.c7rs.com/aarch64/ampinstmgr-latest.tgz;; \
-            esac; \
+            wget -q https://cdn-repo.c7rs.com/aarch64/ampinstmgr-latest.tgz; \
             tar -xzf ampinstmgr-latest.tgz -C /; \
             rm ampinstmgr-latest.tgz; \
             \
