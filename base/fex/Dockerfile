@@ -41,6 +41,9 @@ RUN         set -eux; \
                 libncurses6:armhf libtinfo6:armhf libsdl2-2.0-0:armhf libssl3t64:armhf; \
             \
             # Install FEX
+            apt-get install -o APT::Keep-Downloaded-Packages="false" -y software-properties-common; \
+            add-apt-repository ppa:fex-emu/fex; \
+            apt-get update; \
             curl --silent https://raw.githubusercontent.com/FEX-Emu/FEX/main/Scripts/InstallFEX.py | python3; \
             \
             # Temp fix if libssl1.1 needed
