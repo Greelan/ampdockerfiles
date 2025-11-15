@@ -44,8 +44,7 @@ RUN         set -eux; \
             apt-get install -o APT::Keep-Downloaded-Packages="false" -y software-properties-common; \
             add-apt-repository ppa:fex-emu/fex; \
             apt-get update; \
-            apt-get install -o APT::Keep-Downloaded-Packages="false" -y \
-                fex-emu-armv8.0; \
+            apt-get install -o APT::Keep-Downloaded-Packages="false" -y fex-emu-armv8.0; \
             FEXRootFSFetcher; \
             \
             # Temp fix if libssl1.1 needed
