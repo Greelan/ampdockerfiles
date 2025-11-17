@@ -1,7 +1,28 @@
-# Ubuntu 24.04 with FEX image for AMP containers on ARM64
+# Debian 13 with FEX image for AMP containers on ARM64
 # cubecoders/ampbase:fex
 
-FROM        ubuntu:noble
+FROM        debian:trixie-slim AS builder
+
+ENV         DEBIAN_FRONTEND="noninteractive"
+
+RUN         set -eux; \
+            apt-get update; \
+            apt-get install -o APT::Keep-Downloaded-Packages="false" --no-install-recommends -y \
+                git cmake ninja-build pkgconf ccache clang llvm lld binfmt-support libssl-dev \
+                python3 python3-setuptools python3-clang squashfs-tools squashfuse g++ \
+                qtbase5-dev qtdeclarative5-dev qml-module-qtquick-controls qml-module-qtquick-controls2 \
+                qml-module-qtquick-dialogs; \
+            cd /src; \
+            git clone --recurse-submodules https://github.com/FEX-Emu/FEX.git; \
+            cd FEX; \
+            mkdir Build; \
+            cd Build; \
+            CC=clang CXX=clang++ cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DUSE_LINKER=lld -DENABLE_LTO=True -DBUILD_TESTING=False -DENABLE_ASSERTIONS=False -G Ninja ..; \
+            ninja; \
+            DESTDIR=/tmp/fex-install ninja install; \
+            DESTDIR=/tmp/fex-install ninja binfmt_misc
+ 
+FROM        debian:trixie-slim
 
 LABEL       org.opencontainers.image.source="https://github.com/CubeCoders/dockerfiles"
 LABEL       org.opencontainers.image.licenses=MIT
@@ -9,7 +30,9 @@ LABEL       org.opencontainers.image.licenses=MIT
 ENV         AMP_CONTAINER="1"
 ENV         DEBIAN_FRONTEND="noninteractive"
 
-ARG         TARGETARCH
+COPY        --from=builder /tmp/fex-install/usr/bin/FEX* /usr/bin/
+COPY        --from=builder /tmp/fex-install/usr/share/fex-emu/ /usr/share/fex-emu/
+COPY        --from=builder /tmp/fex-install/usr/share/binfmts/FEX* /usr/share/binfmts/
 
 # Update base packages and install dependencies
 RUN         set -eux; \
@@ -19,7 +42,9 @@ RUN         set -eux; \
                 ca-certificates curl wget tar unzip xz-utils bzip2 \
                 coreutils procps iproute2 iputils-ping socat jq git git-lfs gnupg tmux dbus \
                 tini tzdata locales gosu \
-                libssl3t64 libcurl4t64 libsqlite3-0 libzstd1 libsdl2-2.0-0 libsdl1.2debian libfontconfig1 \
+                libssl3t64 libcurl4t64 libsqlite3-0 libzstd1 libsdl2-2.0-0 libsdl1.2debian libfontconfig1 libicu76 \
+                # Required for Proton
+                python3 \
                 # Required for Core Keeper
                 xvfb xauth libxi6 \
                 # Required for Valheim crossplay (and variously some others)
@@ -40,12 +65,14 @@ RUN         set -eux; \
                 libstdc++6:armhf zlib1g:armhf libbz2-1.0:armhf libcurl4t64:armhf libcurl3t64-gnutls:armhf \
                 libncurses6:armhf libtinfo6:armhf libsdl2-2.0-0:armhf libssl3t64:armhf; \
             \
-            # Install FEX
-            apt-get install -o APT::Keep-Downloaded-Packages="false" -y software-properties-common; \
-            add-apt-repository ppa:fex-emu/fex; \
-            apt-get update; \
-            apt-get install -o APT::Keep-Downloaded-Packages="false" -y fex-emu-armv8.0; \
-            FEXRootFSFetcher; \
+            # Install FEX dependencies and RootFS
+            apt-get install -o APT::Keep-Downloaded-Packages="false" -y \
+                libstdc++6 libgcc-s1 squashfs-tools squashfuse fuse; \
+            groupadd -r -o amp; \
+            useradd -m -d /home/amp -s /bin/bash -c "AMP Process User" -o -g amp amp; \
+            install -d -o amp -g amp /home/amp/.fex-emu/RootFS; \
+            echo '{"Config":{"RootFS":"Ubuntu_24_04.sqsh"},"ThunksDB":{}}' > /home/amp/.fex-emu/Config.json; \
+            wget -qP /home/amp/.fex-emu/RootFS https://rootfs.fex-emu.gg/Ubuntu_24_04/2025-03-04/Ubuntu_24_04.sqsh; \
             \
             # Temp fix if libssl1.1 needed
             wget -qO libssl1.1.deb https://ports.ubuntu.com/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.24_arm64.deb; \
