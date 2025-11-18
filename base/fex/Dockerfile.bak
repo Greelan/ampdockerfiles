@@ -1,5 +1,29 @@
 # Debian 13 with FEX image for AMP containers on ARM64
 # cubecoders/ampbase:fex
+
+FROM        debian:trixie-slim AS builder
+
+ENV         DEBIAN_FRONTEND="noninteractive"
+
+RUN         set -eux; \
+            apt-get update; \
+            apt-get install -o APT::Keep-Downloaded-Packages="false" --no-install-recommends -y \
+                git cmake ninja-build pkgconf ccache clang llvm lld binfmt-support libssl-dev \
+                python3-setuptools g++-x86-64-linux-gnu libgcc-14-dev-i386-cross libgcc-14-dev-amd64-cross \
+                nasm python3-clang libstdc++-12-dev-amd64-cross libstdc++-12-dev-arm64-cross \
+                squashfs-tools squashfuse libc-bin libc6-dev-i386-amd64-cross \
+                lib32stdc++-14-dev-amd64-cross qtdeclarative5-dev qml-module-qtquick-controls \
+                qml-module-qtquick-controls2 qml-module-qtquick-dialogs; \
+            \
+            cd /src; \
+            git clone --recurse-submodules https://github.com/FEX-Emu/FEX.git; \
+            cd FEX; \
+            mkdir Build; \
+            cd Build; \
+            CC=clang CXX=clang++ cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DUSE_LINKER=lld -DENABLE_LTO=True -DBUILD_TESTING=False -DENABLE_ASSERTIONS=False -G Ninja ..; \
+            ninja; \
+            DESTDIR=/tmp/fex-install ninja install; \
+            DESTDIR=/tmp/fex-install ninja binfmt_misc
  
 FROM        debian:trixie-slim
 
@@ -8,6 +32,10 @@ LABEL       org.opencontainers.image.licenses=MIT
 
 ENV         AMP_CONTAINER="1"
 ENV         DEBIAN_FRONTEND="noninteractive"
+
+COPY        --from=builder /tmp/fex-install/usr/bin/FEX* /usr/bin/
+COPY        --from=builder /tmp/fex-install/usr/share/fex-emu/ /usr/share/fex-emu/
+COPY        --from=builder /tmp/fex-install/usr/share/binfmts/FEX* /usr/share/binfmts/
 
 # Update base packages and install dependencies
 RUN         set -eux; \
@@ -43,12 +71,13 @@ RUN         set -eux; \
             # Install FEX, its dependencies and RootFS
             apt-get install -o APT::Keep-Downloaded-Packages="false" --no-install-recommends -y \
                 git cmake ninja-build pkgconf ccache clang llvm lld binfmt-support libssl-dev \
-                python3-setuptools g++-x86-64-linux-gnu libgcc-14-dev-i386-cross libgcc-14-dev-amd64-cross \
+                g++-x86-64-linux-gnu libgcc-14-dev-i386-cross libgcc-14-dev-amd64-cross \
                 nasm python3-clang libstdc++-12-dev-amd64-cross libstdc++-12-dev-arm64-cross \
                 squashfs-tools squashfuse libc-bin libc6-dev-i386-amd64-cross \
                 lib32stdc++-14-dev-amd64-cross qtdeclarative5-dev qml-module-qtquick-controls \
                 qml-module-qtquick-controls2 qml-module-qtquick-dialogs; \
             \
+            cd /src; \
             git clone --recurse-submodules https://github.com/FEX-Emu/FEX.git; \
             cd FEX; \
             mkdir Build; \
