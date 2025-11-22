@@ -93,7 +93,7 @@ install -d -m 0700 -o amp -g amp "${XDG_RUNTIME_DIR}"
 
 # Addition for FEX
 if [[ -d "/tmp/.fex-emu" ]]; then
-  mv /tmp/.fex-emu /home/amp/.fex-emu
+  mv /tmp/.fex-emu /home/amp/
   chown -R amp:amp /home/amp/.fex-emu
 fi
 
