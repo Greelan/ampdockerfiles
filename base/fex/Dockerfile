@@ -8,7 +8,7 @@ ENV         DEBIAN_FRONTEND="noninteractive"
 RUN         set -eux; \
             apt-get update; \
             apt-get install -o APT::Keep-Downloaded-Packages="false" --no-install-recommends -y \
-                git cmake ninja-build pkgconf ccache clang llvm lld libssl-dev \
+                ca-certificates git cmake ninja-build pkgconf ccache clang llvm lld libssl-dev \
                 python3-setuptools g++-x86-64-linux-gnu libgcc-14-dev-i386-cross libgcc-14-dev-amd64-cross \
                 nasm python3-clang libstdc++-12-dev-amd64-cross libstdc++-12-dev-arm64-cross; \
             \
