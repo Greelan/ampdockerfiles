@@ -67,8 +67,8 @@ RUN         set -eux; \
             apt-get install -o APT::Keep-Downloaded-Packages="false" --no-install-recommends -y \
                 squashfs-tools squashfuse; \
             \
-            groupadd -r -o amp; \
-            useradd -m -d /home/amp -s /bin/bash -c "AMP Process User" -o -g amp amp; \
+            groupadd -r amp; \
+            useradd -m -d /home/amp -s /bin/bash -c "AMP Process User" -g amp amp; \
             install -d -o amp -g amp /home/amp/.fex-emu/RootFS; \
             printf '{"Config":{"RootFS":"Ubuntu_24_04.sqsh"},"ThunksDB":{}}' > /home/amp/.fex-emu/Config.json; \
             wget -qP /home/amp/.fex-emu/RootFS https://rootfs.fex-emu.gg/Ubuntu_24_04/2025-03-04/Ubuntu_24_04.sqsh; \
