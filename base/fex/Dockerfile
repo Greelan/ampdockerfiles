@@ -10,7 +10,10 @@ RUN         set -eux; \
             apt-get install -o APT::Keep-Downloaded-Packages="false" --no-install-recommends -y \
                 ca-certificates git cmake ninja-build pkgconf ccache clang llvm lld libssl-dev \
                 python3-setuptools g++-x86-64-linux-gnu libgcc-14-dev-i386-cross libgcc-14-dev-amd64-cross \
-                nasm python3-clang libstdc++-12-dev-amd64-cross libstdc++-12-dev-arm64-cross; \
+                nasm python3-clang libstdc++-12-dev-amd64-cross libstdc++-12-dev-arm64-cross \
+                squashfs-tools squashfuse libc-bin libc6-dev-i386-amd64-cross \
+                lib32stdc++-14-dev-amd64-cross qtdeclarative5-dev qml-module-qtquick-controls \
+                qml-module-qtquick-controls2 qml-module-qtquick-dialogs; \
             \
             git clone --recurse-submodules https://github.com/FEX-Emu/FEX.git; \
             cd FEX; \
