@@ -91,6 +91,12 @@ fi
 XDG_RUNTIME_DIR="/run/user/${AMPUSERID}"
 install -d -m 0700 -o amp -g amp "${XDG_RUNTIME_DIR}"
 
+# Addition for FEX
+if [[ -d "/tmp/.fex-emu" ]]; then
+  mv /tmp/.fex-emu /home/amp/.fex-emu
+  chown -R amp:amp /home/amp/.fex-emu
+fi
+
 # Handoff
 echo "[Info] Starting AMP..."
 ARGS=$@
