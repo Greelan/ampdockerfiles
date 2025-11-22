@@ -1,5 +1,23 @@
 # Debian 13 with FEX image for AMP containers on ARM64
 # cubecoders/ampbase:fex
+
+FROM        debian:trixie-slim AS builder
+
+ENV         DEBIAN_FRONTEND="noninteractive"
+
+RUN         set -eux; \
+            apt-get update; \
+            apt-get install -o APT::Keep-Downloaded-Packages="false" --no-install-recommends -y \
+                git cmake ninja-build pkgconf ccache clang llvm lld libssl-dev \
+                python3-setuptools g++-x86-64-linux-gnu libgcc-14-dev-i386-cross libgcc-14-dev-amd64-cross \
+                nasm python3-clang libstdc++-12-dev-amd64-cross libstdc++-12-dev-arm64-cross; \
+            \
+            git clone --recurse-submodules https://github.com/FEX-Emu/FEX.git; \
+            cd FEX; \
+            mkdir Build; \
+            cd Build; \
+            CC=clang CXX=clang++ cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DUSE_LINKER=lld -DENABLE_LTO=True -DBUILD_TESTING=False -DENABLE_ASSERTIONS=False -G Ninja ..; \
+            ninja
  
 FROM        debian:trixie-slim
 
@@ -8,6 +26,8 @@ LABEL       org.opencontainers.image.licenses=MIT
 
 ENV         AMP_CONTAINER="1"
 ENV         DEBIAN_FRONTEND="noninteractive"
+
+COPY        --from=builder /FEX/Build/Bin/* /usr/bin/
 
 # Update base packages and install dependencies
 RUN         set -eux; \
@@ -40,23 +60,10 @@ RUN         set -eux; \
                 libstdc++6:armhf zlib1g:armhf libbz2-1.0:armhf libcurl4t64:armhf libcurl3t64-gnutls:armhf \
                 libncurses6:armhf libtinfo6:armhf libsdl2-2.0-0:armhf libssl3t64:armhf; \
             \
-            # Install FEX, its dependencies and RootFS
+            # Install FEX dependencies and RootFS
             apt-get install -o APT::Keep-Downloaded-Packages="false" --no-install-recommends -y \
-                git cmake ninja-build pkgconf ccache clang llvm lld binfmt-support libssl-dev \
-                python3-setuptools g++-x86-64-linux-gnu libgcc-14-dev-i386-cross libgcc-14-dev-amd64-cross \
-                nasm python3-clang libstdc++-12-dev-amd64-cross libstdc++-12-dev-arm64-cross \
-                squashfs-tools squashfuse libc-bin libc6-dev-i386-amd64-cross \
-                lib32stdc++-14-dev-amd64-cross qtdeclarative5-dev qml-module-qtquick-controls \
-                qml-module-qtquick-controls2 qml-module-qtquick-dialogs; \
+                squashfs-tools squashfuse; \
             \
-            git clone --recurse-submodules https://github.com/FEX-Emu/FEX.git; \
-            cd FEX; \
-            mkdir Build; \
-            cd Build; \
-            CC=clang CXX=clang++ cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DUSE_LINKER=lld -DENABLE_LTO=True -DBUILD_TESTING=False -DENABLE_ASSERTIONS=False -G Ninja ..; \
-            ninja; \
-            ninja install; \
-            ninja binfmt_misc; \
             groupadd -r -o amp; \
             useradd -m -d /home/amp -s /bin/bash -c "AMP Process User" -o -g amp amp; \
             install -d -o amp -g amp /home/amp/.fex-emu/RootFS; \
