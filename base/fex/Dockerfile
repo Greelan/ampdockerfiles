@@ -65,11 +65,12 @@ RUN         set -eux; \
             \
             # Install FEX dependencies and RootFS
             apt-get install -o APT::Keep-Downloaded-Packages="false" --no-install-recommends -y \
-                squashfs-tools squashfuse; \
+                squashfs-tools; \
             \
-            #install -d /tmp/.fex-emu/RootFS; \
-            #printf '{"Config":{"RootFS":"Ubuntu_24_04.sqsh"},"ThunksDB":{}}' > /tmp/.fex-emu/Config.json; \
-            #wget -qP /tmp/.fex-emu/RootFS https://rootfs.fex-emu.gg/Ubuntu_24_04/2025-03-04/Ubuntu_24_04.sqsh; \
+            install -d /tmp/.fex-emu/RootFS; \
+            printf '{"Config":{"RootFS":"Ubuntu_24_04"},"ThunksDB":{}}' > /tmp/.fex-emu/Config.json; \
+            wget -qP /tmp/.fex-emu/RootFS https://rootfs.fex-emu.gg/Ubuntu_24_04/2025-03-04/Ubuntu_24_04.sqsh; \
+            unsquashfs -f -d /tmp/.fex-emu/RootFS/Ubuntu_24_04 /tmp/.fex-emu/RootFS/Ubuntu_24_04.sqsh; \
             \
             # Temp fix if libssl1.1 needed
             wget -qO libssl1.1.deb https://ports.ubuntu.com/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.24_arm64.deb; \

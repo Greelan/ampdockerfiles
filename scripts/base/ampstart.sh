@@ -93,7 +93,24 @@ install -d -m 0700 -o amp -g amp "${XDG_RUNTIME_DIR}"
 
 # Addition for FEX
 if [[ -d "/tmp/.fex-emu" ]]; then
-  mv /tmp/.fex-emu /home/amp/
+  if [[ ! -d "/home/amp/.fex-emu" ]]; then
+    mv /tmp/.fex-emu /home/amp/
+  else
+    CONFIG_FILE="/home/amp/.fex-emu/Config.json"
+    if [[ ! -f "$CONFIG_FILE" ]]; then
+      mv /tmp/.fex-emu/Config.json /home/amp/.fex-emu/
+    else
+      if [[ "$(jq -r '.Config.RootFS // empty' "$CONFIG_FILE")" != "Ubuntu_24_04" ]]; then
+        tmp_cfg="$(mktemp)"
+        jq '.Config = (.Config // {})
+            | .Config.RootFS = "Ubuntu_24_04"' \
+          "$CONFIG_FILE" >"$tmp_cfg"
+        mv "$tmp_cfg" "$CONFIG_FILE"
+        rm /tmp/.fex-emu/Config.json
+      fi
+    fi
+    mv -f /tmp/.fex-emu/RootFS /home/amp/.fex-emu/
+  fi
   chown -R amp:amp /home/amp/.fex-emu
 fi
 
