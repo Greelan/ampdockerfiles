@@ -109,7 +109,8 @@ if [[ -d "/tmp/.fex-emu" ]]; then
         rm /tmp/.fex-emu/Config.json
       fi
     fi
-    mv -f /tmp/.fex-emu/RootFS /home/amp/.fex-emu/
+    rm -rf /home/amp/.fex-emu/RootFS
+    mv /tmp/.fex-emu/RootFS /home/amp/.fex-emu/
   fi
   chown -R amp:amp /home/amp/.fex-emu
 fi
