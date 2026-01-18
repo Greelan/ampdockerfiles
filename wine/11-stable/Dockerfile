@@ -1,5 +1,5 @@
-# Wine image for AMP containers based on Wine devel
-# cubecoders/ampbase:wine-devel
+# Wine image for AMP containers based on Wine 11 stable
+# cubecoders/ampbase:wine-11-stable
 
 FROM        cubecoders/ampbase:wine-common
 
@@ -9,17 +9,19 @@ ENV         DEBIAN_FRONTEND="noninteractive"
 
 ARG         TARGETARCH
 ARG         WINE_DIST="trixie"
-ARG         WINE_BRANCH="devel"
+ARG         WINE_BRANCH="stable"
 ARG         WINE_LINK="https://dl.winehq.org/wine-builds/debian/pool/main/w/wine/"
+ARG         WINE_TARGET="11"
 
-# Install additional required packages and Wine devel
+# Install additional required packages and Wine 11 stable
 RUN         set -eux; \
             WINE_BUILD="$( \
                 curl -fsSL "${WINE_LINK}" \
-                | grep -oE "wine-${WINE_BRANCH}-amd64_[0-9][0-9.]*(~rc[0-9]+)?~${WINE_DIST}(-[0-9]+)?_amd64\.deb" \
-                | sed -E "s/^wine-${WINE_BRANCH}-amd64_([0-9][0-9.]*(~rc[0-9]+)?~${WINE_DIST}(-[0-9]+)?)_amd64\.deb$/\1/" \
+                | grep -oE "wine-${WINE_BRANCH}-amd64_[0-9][0-9.]*~${WINE_DIST}(-[0-9]+)?_amd64\.deb" \
+                | sed -E "s/^wine-${WINE_BRANCH}-amd64_([0-9.]+~${WINE_DIST}(-[0-9]+)?)_amd64\.deb$/\1/" \
+                | grep -E "^${WINE_TARGET}(\.|$)" \
                 | sort -V | tail -1 \
-                )"; \
+            )"; \
             \
             case "${TARGETARCH}" in \
             \
@@ -30,12 +32,15 @@ RUN         set -eux; \
                     \
                     apt-get update; \
                     apt-get install -o APT::Keep-Downloaded-Packages="false" -y --install-recommends \
-                        winehq-${WINE_BRANCH}; \
+                        wine-${WINE_BRANCH}-i386=${WINE_BUILD} \
+                        wine-${WINE_BRANCH}-amd64=${WINE_BUILD} \
+                        wine-${WINE_BRANCH}=${WINE_BUILD} \
+                        winehq-${WINE_BRANCH}=${WINE_BUILD}; \
                     ;; \
                 \
                 arm64) \
                     apt-get update; \
-                    xargs -ra /tmp/wine-files/wine-${WINE_BRANCH}-deps-arm64.txt \
+                    xargs -ra /tmp/wine-files/wine-${WINE_TARGET}-${WINE_BRANCH}-deps-arm64.txt \
                         apt-get install -o APT::Keep-Downloaded-Packages="false" -y --no-install-recommends; \
                     \
                     for n in \

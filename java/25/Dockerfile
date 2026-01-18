@@ -1,5 +1,5 @@
-# Java image for AMP containers including all Temurin LTS versions
-# cubecoders/ampbase:java-lts
+# Java image for AMP containers including Temurin Java 25
+# cubecoders/ampbase:java-25
 
 FROM        cubecoders/ampbase:debian
 
@@ -9,7 +9,7 @@ ENV         DEBIAN_FRONTEND="noninteractive"
 
 ARG         TARGETARCH
 
-# Install required packages and Temurin Java LTS versions
+# Install required packages and Temurin Java 25
 RUN         set -eux; \
             apt-get update; \
             # Add dependencies as per official Adoptium images
@@ -20,17 +20,6 @@ RUN         set -eux; \
             printf 'Types: deb\nURIs: https://packages.adoptium.net/artifactory/deb\nSuites: trixie\nComponents: main\nSigned-By: /etc/apt/keyrings/adoptium.gpg\n' | tee /etc/apt/sources.list.d/adoptium.sources >/dev/null; \
             apt-get update; \
             apt-get install -o APT::Keep-Downloaded-Packages="false" -y \
-                temurin-8-jdk temurin-11-jdk temurin-17-jdk temurin-21-jdk temurin-25-jdk; \
-            # Set Java 21 as the default version
-            case "${TARGETARCH}" in \
-                amd64) \
-                    update-alternatives --set java /usr/lib/jvm/temurin-21-jdk-amd64/bin/java; \
-                    update-alternatives --set javac /usr/lib/jvm/temurin-21-jdk-amd64/bin/javac; \
-                ;; \
-                arm64) \
-                    update-alternatives --set java /usr/lib/jvm/temurin-21-jdk-arm64/bin/java; \
-                    update-alternatives --set javac /usr/lib/jvm/temurin-21-jdk-arm64/bin/javac; \
-                ;; \
-            esac; \
+                temurin-25-jdk; \
             apt-get clean; \
             rm -rf /var/lib/apt/lists/*
